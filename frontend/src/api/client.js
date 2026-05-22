@@ -1,23 +1,29 @@
 import axios from 'axios'
 
-// Reads VITE_API_URL from .env.local
-// If not set, defaults to empty string (uses same host — Vite proxy)
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+let BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+// Force HTTPS in production
+if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+  BASE = BASE.replace('http://', 'https://')
+}
 
 const client = axios.create({
   baseURL: `${BASE}/api`,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
+  maxRedirects: 0,   // ← don't follow redirects, fail immediately so we know
 })
 
-// Attach JWT token to every request
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
+  // Ensure NO trailing slash on the URL
+  if (config.url && config.url.endsWith('/') && config.url !== '/') {
+    config.url = config.url.slice(0, -1)
+  }
   return config
 })
 
-// Handle 401 — redirect to login
 client.interceptors.response.use(
   (res) => res,
   (error) => {

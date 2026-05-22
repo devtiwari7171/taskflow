@@ -9,7 +9,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
-    redirect_slashes=False,   # ← stops 307 redirects
+    # redirect_slashes=True is the default — keep it
 )
 
 app.add_middleware(
