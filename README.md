@@ -1,195 +1,126 @@
-# 🚀 TaskFlow — Team Task Manager
+# TaskFlow — Team Task Manager
 
-A full-stack team task management app with **role-based access control**, built with **FastAPI + React + PostgreSQL**.
+A full-stack team task management application with role-based access control, built and deployed as two independent services on Railway.
 
----
-
-## ✨ Features
-
-| Feature | Details |
-|---|---|
-| 🔐 Auth | JWT signup/login, bcrypt password hashing, 7-day tokens |
-| 👥 RBAC | App-level Admin/Member + per-project Admin/Member roles |
-| 📁 Projects | Create, update, delete; color-coded; progress tracking |
-| ✅ Tasks | Full CRUD, 4 statuses, 4 priorities, due dates, assignees |
-| 💬 Comments | Thread comments on tasks, delete own or (admin) any |
-| 📊 Dashboard | Live stats — total, in-progress, overdue, completion % |
-| 📋 Kanban | Board view grouped by status; list view with filters |
-| 📱 Responsive | Mobile-first sidebar + top-nav |
+**Live Demo:** [balanced-nourishment-production.up.railway.app](https://balanced-nourishment-production.up.railway.app)
+**API Docs:** [taskflow-production-4f3c.up.railway.app/api/docs](https://taskflow-production-4f3c.up.railway.app/api/docs)
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
-| Layer | Tech |
-|---|---|
-| Backend | Python 3.11 + FastAPI |
-| ORM | SQLAlchemy 2.0 |
-| Database | PostgreSQL |
-| Auth | JWT (python-jose) + bcrypt (passlib) |
-| Frontend | React 18 + Vite |
-| Styling | Tailwind CSS |
-| HTTP | Axios |
-| Routing | React Router v6 |
-| Deployment | Railway |
+**Backend:** Python 3.11, FastAPI, SQLAlchemy 2.0, PostgreSQL, JWT (python-jose), bcrypt (passlib)
+
+**Frontend:** React 18, Vite, Tailwind CSS, Axios, React Router v6
+
+**Deployment:** Railway (separate backend + frontend services)
 
 ---
 
-## 📂 Project Structure
+## Features
+
+### Authentication & Security
+- JWT-based signup and login with 7-day token expiry
+- Passwords hashed with bcrypt
+- Protected routes with token validation on every request
+
+### Role-Based Access Control
+Two independent layers of roles:
+
+| Action | Member | Project Admin | App Admin |
+|---|:---:|:---:|:---:|
+| View own projects & tasks | ✅ | ✅ | ✅ |
+| View ALL projects | ❌ | ❌ | ✅ |
+| Create project | ✅ | ✅ | ✅ |
+| Delete project | ❌ | Owner only | ✅ |
+| Add / remove members | ❌ | ✅ | ✅ |
+| Create & update tasks | ✅ | ✅ | ✅ |
+| Delete any task | ❌ | ✅ | ✅ |
+| Manage all users | ❌ | ❌ | ✅ |
+
+### Projects
+- Create, update, and delete projects with custom color labels
+- Per-project member management with role assignment
+- Progress tracking (task completion %)
+
+### Tasks
+- Full CRUD with 4 statuses: Todo → In Progress → In Review → Done
+- 4 priority levels, due dates, and assignee support
+- Overdue detection with visual indicators
+- Kanban board view and list view with filters
+
+### Collaboration
+- Threaded comments on tasks
+- Assign tasks to project members
+- Dashboard with live stats: total tasks, in-progress, overdue counts
+
+---
+
+## REST API
+
+Built with FastAPI — fully documented at `/api/docs` with Swagger UI.
+
+**Auth** — `/api/auth`
+- `POST /signup` — register, returns JWT + user
+- `POST /login` — login, returns JWT + user
+- `GET /me` — current user info
+- `PUT /me` — update profile
+
+**Projects** — `/api/projects`
+- `GET /` — list own projects (App Admin sees all)
+- `POST /` — create project
+- `GET /{id}`, `PUT /{id}`, `DELETE /{id}` — project CRUD
+- `POST /{id}/members` — add member by email
+- `DELETE /{id}/members/{uid}`, `PATCH /{id}/members/{uid}` — manage members
+
+**Tasks** — `/api`
+- `GET/POST /projects/{id}/tasks` — list and create tasks
+- `GET/PUT/DELETE /tasks/{id}` — task CRUD
+- `POST /tasks/{id}/comments`, `DELETE /comments/{id}` — comments
+- `GET /dashboard/stats` — aggregated counts
+- `GET /dashboard/my-tasks` — tasks assigned to me
+
+---
+
+## Project Structure
 
 ```
 team-task-manager/
 ├── backend/
 │   ├── app/
-│   │   ├── core/        # config.py · security.py · deps.py
-│   │   ├── db/          # database.py (engine + session)
-│   │   ├── models/      # user · project · task (SQLAlchemy)
-│   │   ├── routers/     # auth · users · projects · tasks
-│   │   ├── schemas/     # Pydantic I/O schemas
-│   │   └── main.py      # FastAPI app + CORS + startup
-│   ├── requirements.txt
-│   └── railway.json
+│   │   ├── core/        # config, security, auth dependencies
+│   │   ├── db/          # SQLAlchemy engine and session
+│   │   ├── models/      # User, Project, Task (ORM models)
+│   │   ├── routers/     # auth, users, projects, tasks
+│   │   ├── schemas/     # Pydantic request/response schemas
+│   │   └── main.py      # FastAPI app, CORS, startup
+│   └── requirements.txt
 └── frontend/
     ├── src/
-    │   ├── api/         # axios client + per-resource helpers
-    │   ├── components/  # Layout · Avatar · TaskCard · Modal · Toast · TaskForm
+    │   ├── api/         # Axios client and per-resource helpers
+    │   ├── components/  # Layout, TaskCard, Modal, Toast, Forms
     │   ├── context/     # AuthContext (JWT + user state)
-    │   └── pages/       # Dashboard · Projects · ProjectDetail · TaskDetail · MyTasks · Profile
-    ├── package.json
-    └── railway.json
+    │   └── pages/       # Dashboard, Projects, ProjectDetail, TaskDetail, MyTasks, Profile
+    └── package.json
 ```
 
 ---
 
-## 🌐 REST API Reference
+## Running Locally
 
-### Auth — `/api/auth`
-| Method | Path | Description |
-|---|---|---|
-| POST | `/signup` | Register, returns JWT + user |
-| POST | `/login` | Login, returns JWT + user |
-| GET | `/me` | Current user info |
-| PUT | `/me` | Update name / avatar color |
-
-### Projects — `/api/projects`
-| Method | Path | Access |
-|---|---|---|
-| GET | `/` | Own projects (Admin: all) |
-| POST | `/` | Any authenticated user |
-| GET | `/{id}` | Project members |
-| PUT | `/{id}` | Project admin |
-| DELETE | `/{id}` | Owner or App admin |
-| POST | `/{id}/members` | Project admin |
-| DELETE | `/{id}/members/{uid}` | Project admin |
-| PATCH | `/{id}/members/{uid}` | Project admin |
-
-### Tasks — `/api`
-| Method | Path | Description |
-|---|---|---|
-| GET | `/projects/{id}/tasks` | List (filterable by status, assignee) |
-| POST | `/projects/{id}/tasks` | Create task |
-| GET | `/tasks/{id}` | Task detail + comments |
-| PUT | `/tasks/{id}` | Update task |
-| DELETE | `/tasks/{id}` | Delete task |
-| POST | `/tasks/{id}/comments` | Add comment |
-| DELETE | `/comments/{id}` | Delete comment |
-| GET | `/dashboard/stats` | Aggregated counts |
-| GET | `/dashboard/my-tasks` | Tasks assigned to me |
-
-> **Interactive docs:** `https://your-api.railway.app/api/docs`
-
----
-
-## 🔒 Role-Based Access Control Matrix
-
-| Action | Member | Project Admin | App Admin |
-|---|:---:|:---:|:---:|
-| View own projects/tasks | ✅ | ✅ | ✅ |
-| View ALL projects | ❌ | ❌ | ✅ |
-| Create project | ✅ | ✅ | ✅ |
-| Delete project | ❌ | Owner only | ✅ |
-| Add / remove members | ❌ | ✅ | ✅ |
-| Create / update tasks | ✅ | ✅ | ✅ |
-| Delete any task | ❌ | ✅ | ✅ |
-| Delete own task | ✅ | ✅ | ✅ |
-| Manage all users | ❌ | ❌ | ✅ |
-
----
-
-## 🏃 Local Development
-
-### Backend
+**Backend**
 ```bash
 cd backend
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # fill in DATABASE_URL + SECRET_KEY
+cp .env.example .env          # set DATABASE_URL and SECRET_KEY
 uvicorn app.main:app --reload --port 8000
 ```
 
-### Frontend
+**Frontend**
 ```bash
 cd frontend
 npm install
 cp .env.example .env.local    # set VITE_API_URL=http://localhost:8000
 npm run dev
 ```
-
----
-
-## 🚀 Deploy to Railway (Step-by-Step)
-
-### 1 — Push to GitHub
-```bash
-git init && git add . && git commit -m "TaskFlow initial commit"
-git remote add origin https://github.com/YOU/YOUR-REPO.git
-git push -u origin main
-```
-
-### 2 — Backend service
-1. Railway → **New Project** → **Deploy from GitHub** → select repo
-2. **Root Directory** → `backend`
-3. **+ New** → **Database** → **PostgreSQL** (auto-sets `DATABASE_URL`)
-4. Add env vars:
-   ```
-   SECRET_KEY=<run: openssl rand -hex 32>
-   FRONTEND_URL=https://PLACEHOLDER   ← update after step 3
-   ```
-5. Verify: `https://your-api.railway.app/health` → `{"status":"healthy"}`
-
-### 3 — Frontend service
-1. Same project → **+ New** → **GitHub Repo** (same repo)
-2. **Root Directory** → `frontend`
-3. Add env var:
-   ```
-   VITE_API_URL=https://your-api.railway.app
-   ```
-4. Build: `npm install && npm run build` | Start: `npx serve -s dist -l $PORT`
-
-### 4 — Link CORS
-Back in backend service → update `FRONTEND_URL=https://your-frontend.railway.app` → redeploy.
-
----
-
-## 🎥 Demo Video Script (2–5 min)
-
-1. Open live URL → show Login/Signup pages
-2. Sign up as **Admin** → tour Dashboard (stats cards, progress bar)
-3. Create a project with color picker
-4. Switch to Kanban board → create 3 tasks (different priorities/due dates)
-5. Open a task → change status, add comment
-6. Add a second user via **Add Member** → show member list
-7. Assign a task to the member
-8. Sign in as **Member** → show restricted view (no admin controls)
-9. Open **My Tasks** → show overdue grouping
-10. Back to **Dashboard** → show real-time stats
-
----
-
-## 📦 Submission Checklist
-
-- [ ] Live URL (frontend)
-- [ ] Live API URL + `/api/docs`
-- [ ] GitHub repo link
-- [ ] README (this file)
-- [ ] 2–5 min demo video
