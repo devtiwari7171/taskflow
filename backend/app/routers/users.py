@@ -9,7 +9,7 @@ from app.core.deps import get_current_user, get_admin_user
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("/", response_model=List[UserOut])
+@router.get("", response_model=List[UserOut])
 def list_users(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

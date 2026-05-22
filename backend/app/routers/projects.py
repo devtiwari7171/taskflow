@@ -25,7 +25,7 @@ def _enrich(project: Project, db: Session) -> dict:
     return data
 
 
-@router.post("/", response_model=dict, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=dict, status_code=status.HTTP_201_CREATED)
 def create_project(
     project_data: ProjectCreate,
     current_user: User = Depends(get_current_user),
@@ -45,7 +45,7 @@ def create_project(
     return _enrich(project, db)
 
 
-@router.get("/", response_model=List[dict])
+@router.get("", response_model=List[dict])
 def list_projects(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
